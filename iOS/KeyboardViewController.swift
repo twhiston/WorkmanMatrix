@@ -11,7 +11,8 @@ import UIKit
 class KeyboardViewController: UIInputViewController {
 
     //@IBOutlet var nextKeyboardButton: UIButton!
-    
+    // TODO - textrow buttons are a special case, they could benefit from their own setup function
+    var textrow:UIView!
     var lrow1:UIView!
     var lrow2:UIView!
     var lrow3:UIView!
@@ -33,20 +34,14 @@ class KeyboardViewController: UIInputViewController {
         // Add custom view sizing constraints here
     }
     
-    func createButtonWithTitle(title: String) -> UIButton {
-    
-        let button = UIButton(type: .system) as UIButton
-        button.frame = CGRect(origin: .zero, size: CGSize(width: 30, height: 30))
-        button.setTitle(title, for: [])
-        button.sizeToFit()
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 32)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = UIColor(white: 1.0, alpha: 1.0)
-        button.setTitleColor(UIColor.darkGray, for: [])
-    
-        button.addTarget(self, action: #selector(self.didTapButton), for: .touchUpInside)
-    
-    return button
+    @objc func didTapTextRowButton(sender: AnyObject?) {
+        
+//        let button = sender as! UIButton
+//        guard let title = button.title(for: []) else { return }
+//        let proxy = textDocumentProxy as UITextDocumentProxy
+        
+        //proxy.insertText(title)
+        updateTextDisplay()
     }
     
     @objc func didTapButton(sender: AnyObject?) {
@@ -66,6 +61,8 @@ class KeyboardViewController: UIInputViewController {
             proxy.insertText("\n")
         case "space" :
             proxy.insertText(" ")
+            let display = textrow.subviews[1] as! UIButton
+            display.setTitle("", for: [])
         case "12", "123" :
             numMode = 1
             configureNumpad()
@@ -78,6 +75,7 @@ class KeyboardViewController: UIInputViewController {
         //case "⇧" :
         default :
             proxy.insertText(title)
+            updateTextDisplay()
         }
         if numMode == 0 {
             updateCapsIfNeeded()
@@ -85,6 +83,40 @@ class KeyboardViewController: UIInputViewController {
         //Nothing should go after this switch
     
         
+    }
+    
+    func updateTextDisplay(){
+        let word = doUpdateTextDisplay()
+        let display = textrow.subviews[1] as! UIButton
+        display.setTitle(word, for: [])
+    }
+    
+    func doUpdateTextDisplay() -> String {
+        //Todo - should exit if last character was punctuation
+        let proxy = textDocumentProxy as UITextDocumentProxy
+        var word = ""
+        if let beforeContext = proxy.documentContextBeforeInput {
+            if beforeContext.hasSuffix(" ") {
+                return word
+            }
+            if let index = beforeContext.lastIndex(of: " ") {
+                let lastWord = beforeContext[index...]
+                word += String(lastWord)
+            } else {
+                word += beforeContext
+            }
+        } else {
+            return word
+        }
+        if let afterContext = proxy.documentContextAfterInput {
+            if let index = afterContext.firstIndex(of: " ") {
+                let firstWord = afterContext[...index]
+                word += String(firstWord)
+            } else {
+                word += afterContext
+            }
+        }
+        return word
     }
     
     func updateCapsIfNeeded() {
@@ -148,14 +180,28 @@ class KeyboardViewController: UIInputViewController {
         trow4.isHidden = false
     }
     
-    func createRowOfButtons(buttonTitles: [NSString]) -> UIView {
+    func createButtonWithTitle(title: String) -> UIButton {
+        
+        let button = UIButton(type: .system) as UIButton
+        button.frame = CGRect(origin: .zero, size: CGSize(width: 30, height: 30))
+        button.setTitle(title, for: [])
+        button.sizeToFit()
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 32)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = UIColor(white: 1.0, alpha: 1.0)
+        button.setTitleColor(UIColor.darkGray, for: [])
+        
+        return button
+    }
+    
+    func createRowOfButtons(buttonTitles: [NSString], target: Selector ) -> UIView {
     
         var buttons = [UIButton]()
         let keyboardRowView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 414, height: 50)))
     
         for buttonTitle in buttonTitles{
-    
             let button = createButtonWithTitle(title: buttonTitle as String)
+            button.addTarget(self, action: target, for: .touchUpInside)
             buttons.append(button)
             keyboardRowView.addSubview(button)
         }
@@ -164,6 +210,7 @@ class KeyboardViewController: UIInputViewController {
     
         return keyboardRowView
     }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -188,23 +235,27 @@ class KeyboardViewController: UIInputViewController {
         let buttons2Num2 = ["_", "\\", "|", "~", "<", ">", "$", "€", "`", "'"]
         let buttons2Num3 = ["..", "12", ".", "?", "!", "‘", "⌫", "↵"]
         
-        lrow1 = createRowOfButtons(buttonTitles: buttonLower1 as [NSString])
-        lrow2 = createRowOfButtons(buttonTitles: buttonLower2 as [NSString])
-        lrow3 = createRowOfButtons(buttonTitles: buttonLower3 as [NSString])
-        urow1 = createRowOfButtons(buttonTitles: buttonCaps1 as [NSString])
-        urow2 = createRowOfButtons(buttonTitles: buttonCaps2 as [NSString])
-        urow3 = createRowOfButtons(buttonTitles: buttonCaps3 as [NSString])
-        trow4 = createRowOfButtons(buttonTitles: buttonText4 as [NSString])
+        let textDisplay = ["","",""]
+        
+        lrow1 = createRowOfButtons(buttonTitles: buttonLower1 as [NSString], target: #selector(self.didTapButton))
+        lrow2 = createRowOfButtons(buttonTitles: buttonLower2 as [NSString], target: #selector(self.didTapButton))
+        lrow3 = createRowOfButtons(buttonTitles: buttonLower3 as [NSString], target: #selector(self.didTapButton))
+        urow1 = createRowOfButtons(buttonTitles: buttonCaps1 as [NSString], target: #selector(self.didTapButton))
+        urow2 = createRowOfButtons(buttonTitles: buttonCaps2 as [NSString], target: #selector(self.didTapButton))
+        urow3 = createRowOfButtons(buttonTitles: buttonCaps3 as [NSString], target: #selector(self.didTapButton))
+        trow4 = createRowOfButtons(buttonTitles: buttonText4 as [NSString], target: #selector(self.didTapButton))
     
-        nrow1 = createRowOfButtons(buttonTitles: buttonsNum1 as [NSString])
-        nrow2 = createRowOfButtons(buttonTitles: buttonsNum2 as [NSString])
-        nrow3 = createRowOfButtons(buttonTitles: buttonsNum3 as [NSString])
+        nrow1 = createRowOfButtons(buttonTitles: buttonsNum1 as [NSString], target: #selector(self.didTapButton))
+        nrow2 = createRowOfButtons(buttonTitles: buttonsNum2 as [NSString], target: #selector(self.didTapButton))
+        nrow3 = createRowOfButtons(buttonTitles: buttonsNum3 as [NSString], target: #selector(self.didTapButton))
         
-        n2row1 = createRowOfButtons(buttonTitles: buttons2Num1 as [NSString])
-        n2row2 = createRowOfButtons(buttonTitles: buttons2Num2 as [NSString])
-        n2row3 = createRowOfButtons(buttonTitles: buttons2Num3 as [NSString])
+        n2row1 = createRowOfButtons(buttonTitles: buttons2Num1 as [NSString], target: #selector(self.didTapButton))
+        n2row2 = createRowOfButtons(buttonTitles: buttons2Num2 as [NSString], target: #selector(self.didTapButton))
+        n2row3 = createRowOfButtons(buttonTitles: buttons2Num3 as [NSString], target: #selector(self.didTapButton))
         
+        textrow = createRowOfButtons(buttonTitles: textDisplay as [NSString], target: #selector(self.didTapTextRowButton))
         
+        self.view.addSubview(textrow)
         self.view.addSubview(lrow1)
         self.view.addSubview(lrow2)
         self.view.addSubview(lrow3)
@@ -219,6 +270,7 @@ class KeyboardViewController: UIInputViewController {
         self.view.addSubview(n2row2)
         self.view.addSubview(n2row3)
         
+        textrow.translatesAutoresizingMaskIntoConstraints = false
         lrow1.translatesAutoresizingMaskIntoConstraints = false
         lrow2.translatesAutoresizingMaskIntoConstraints = false
         lrow3.translatesAutoresizingMaskIntoConstraints = false
@@ -233,10 +285,11 @@ class KeyboardViewController: UIInputViewController {
         n2row2.translatesAutoresizingMaskIntoConstraints = false
         n2row3.translatesAutoresizingMaskIntoConstraints = false
         
-        addConstraintsToInputView(inputView: self.view, rowViews: [nrow1, nrow2, nrow3])
-        addConstraintsToInputView(inputView: self.view, rowViews: [n2row1, n2row2, n2row3])
-        addConstraintsToInputView(inputView: self.view, rowViews: [lrow1, lrow2, lrow3, trow4])
-        addConstraintsToInputView(inputView: self.view, rowViews: [urow1, urow2, urow3, trow4])
+        
+        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, nrow1, nrow2, nrow3])
+        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, n2row1, n2row2, n2row3])
+        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, lrow1, lrow2, lrow3, trow4])
+        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, urow1, urow2, urow3, trow4])
         
         configureNumpad()
         updateCapsIfNeeded()
@@ -327,6 +380,23 @@ class KeyboardViewController: UIInputViewController {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        let desiredHeight:CGFloat!
+//        if UIDevice.current.userInterfaceIdiom == .phone{
+//            desiredHeight = 259
+//        }else{
+//            if UIDevice.current.orientation == .portrait{
+//                desiredHeight = 260
+//            }else {
+//                desiredHeight = 300
+//            }
+//        }
+        desiredHeight = 270
+        let heightConstraint = NSLayoutConstraint(item: view as Any, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1.0, constant: desiredHeight)
+        view.addConstraint(heightConstraint)
+        
+    }
+    
     override func viewWillLayoutSubviews() {
         //self.nextKeyboardButton.isHidden = !self.needsInputModeSwitchKey
         super.viewWillLayoutSubviews()
@@ -334,30 +404,23 @@ class KeyboardViewController: UIInputViewController {
     
     override func textWillChange(_ textInput: UITextInput?) {
         // The app is about to change the document's contents. Perform any preparation here.
+        // Also hit when a cursor moves
+        updateTextDisplay()
     }
     
-    override func textDidChange(_ textInput: UITextInput?) {
+    override func textDidChange(_ tebxtInput: UITextInput?) {
         // The app has just changed the document's contents, the document context has been updated.
-        let proxy = self.textDocumentProxy
-    
-        
-        var textColor: UIColor
-        if proxy.keyboardAppearance == UIKeyboardAppearance.dark {
-            textColor = UIColor.white
-        } else {
-            textColor = UIColor.black
-        }
-        //self.nextKeyboardButton.setTitleColor(textColor, for: [])
+        updateTextDisplay()
     }
     
-    func darkMode() -> Bool {
-        let darkMode = { () -> Bool in
-            let proxy = self.textDocumentProxy
-            return proxy.keyboardAppearance == UIKeyboardAppearance.dark
-        }()
-        
-        return darkMode
-    }
+//    func darkMode() -> Bool {
+//        let darkMode = { () -> Bool in
+//            let proxy = self.textDocumentProxy
+//            return proxy.keyboardAppearance == UIKeyboardAppearance.dark
+//        }()
+//
+//        return darkMode
+//    }
     
     func shouldAutoCapitalize() -> Bool {
 //        if !UserDefaults.standard.bool(forKey: kAutoCapitalization) {
@@ -371,7 +434,7 @@ class KeyboardViewController: UIInputViewController {
             
             switch autocapitalization {
             case .none:
-                return false
+                return true
             case .words:
                 if let beforeContext = documentProxy.documentContextBeforeInput {
                     let previousCharacter = beforeContext[beforeContext.index(before: beforeContext.endIndex)]
