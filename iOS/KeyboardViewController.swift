@@ -26,21 +26,40 @@ class KeyboardViewController: UIInputViewController {
     var n2row1:UIView!
     var n2row2:UIView!
     var n2row3:UIView!
+    var ntrow4:UIView!
     var caps:Bool!
     var numMode:Int!
     
+    var userLexicon: UILexicon?
+    var currentWord: String? {
+        var lastWord: String?
+        if let stringBeforeCursor = textDocumentProxy.documentContextBeforeInput {
+            stringBeforeCursor.enumerateSubstrings(in: stringBeforeCursor.startIndex...,
+                                                   options: .byWords)
+            { word, _, _, _ in
+                if let word = word {
+                    lastWord = word
+                }
+            }
+        }
+        return lastWord
+    }
+    
     override func updateViewConstraints() {
         super.updateViewConstraints()
-        // Add custom view sizing constraints here
     }
     
     @objc func didTapTextRowButton(sender: AnyObject?) {
         
-//        let button = sender as! UIButton
-//        guard let title = button.title(for: []) else { return }
-//        let proxy = textDocumentProxy as UITextDocumentProxy
+         let button = sender as! UIButton
+         guard let title = button.title(for: []) else { return }
+         let proxy = textDocumentProxy as UITextDocumentProxy
         
-        //proxy.insertText(title)
+        let current = currentWord ?? ""
+        for _ in 0..<current.count {
+            proxy.deleteBackward()
+        }
+        proxy.insertText(title + " ")
         updateTextDisplay()
     }
     
@@ -60,63 +79,70 @@ class KeyboardViewController: UIInputViewController {
         case "↵" :
             proxy.insertText("\n")
         case "space" :
+            //lexicon replacement
+            attemptToReplaceCurrentWord()
             proxy.insertText(" ")
-            let display = textrow.subviews[1] as! UIButton
-            display.setTitle("", for: [])
         case "12", "123" :
             numMode = 1
             configureNumpad()
         case "#^" :
             numMode = 2
             configureNumpad()
-        case ".." :
+        case "ABC" :
             numMode = 0
             configureNumpad()
         //case "⇧" :
         default :
             proxy.insertText(title)
-            updateTextDisplay()
         }
+        updateTextDisplay()
         if numMode == 0 {
             updateCapsIfNeeded()
         }
         //Nothing should go after this switch
-    
-        
     }
     
     func updateTextDisplay(){
-        let word = doUpdateTextDisplay()
-        let display = textrow.subviews[1] as! UIButton
-        display.setTitle(word, for: [])
+        //get suggestions
+        
+        var replacements = [String](repeating: "", count: 3)
+        
+        if let beforeContext = textDocumentProxy.documentContextBeforeInput {
+            if beforeContext == "" || (self.characterIsWhitespace(beforeContext[beforeContext.index(before: beforeContext.endIndex)])) {
+                replaceTextRowTitles(replacements)
+                return
+            }
+        }
+        
+        let checker = UITextChecker()
+        let inputWord = currentWord ?? ""
+        let guesses = checker.guesses(forWordRange: NSRange(0..<inputWord.utf16.count), in: inputWord , language: "en")
+        let completions = checker.completions(forPartialWordRange: NSRange(0..<inputWord.utf16.count), in: inputWord, language: "en")
+        
+        // This looks fucking grim!
+        if  0 < guesses?.count ?? 0 {
+            replacements[1] = guesses![0]
+        } else {
+            replacements[1] = currentWord ?? ""
+        }
+        
+        if  0 < completions?.count ?? 0 {
+            replacements[0] = completions![0]
+        }
+        
+        if  1 < completions?.count ?? 0 {
+            replacements[2] = completions![1]
+        } else {
+            replacements[2] = currentWord ?? ""
+        }
+        replaceTextRowTitles(replacements)
     }
     
-    func doUpdateTextDisplay() -> String {
-        //Todo - should exit if last character was punctuation
-        let proxy = textDocumentProxy as UITextDocumentProxy
-        var word = ""
-        if let beforeContext = proxy.documentContextBeforeInput {
-            if beforeContext.hasSuffix(" ") {
-                return word
-            }
-            if let index = beforeContext.lastIndex(of: " ") {
-                let lastWord = beforeContext[index...]
-                word += String(lastWord)
-            } else {
-                word += beforeContext
-            }
-        } else {
-            return word
+    func replaceTextRowTitles(_ replacements: [String]){
+        for i in 0..<replacements.count {
+            let display = textrow.subviews[i] as! UIButton
+            display.setTitle(replacements[i], for: [])
         }
-        if let afterContext = proxy.documentContextAfterInput {
-            if let index = afterContext.firstIndex(of: " ") {
-                let firstWord = afterContext[...index]
-                word += String(firstWord)
-            } else {
-                word += afterContext
-            }
-        }
-        return word
     }
     
     func updateCapsIfNeeded() {
@@ -133,6 +159,7 @@ class KeyboardViewController: UIInputViewController {
             n2row1.isHidden = true
             n2row2.isHidden = true
             n2row3.isHidden = true
+            ntrow4.isHidden = false
         } else if numMode == 2 {
             hideLetterKeys()
             nrow1.isHidden = true
@@ -141,6 +168,7 @@ class KeyboardViewController: UIInputViewController {
             n2row1.isHidden = false
             n2row2.isHidden = false
             n2row3.isHidden = false
+            ntrow4.isHidden = false
         } else {
             nrow1.isHidden = true
             nrow2.isHidden = true
@@ -148,6 +176,7 @@ class KeyboardViewController: UIInputViewController {
             n2row1.isHidden = true
             n2row2.isHidden = true
             n2row3.isHidden = true
+            ntrow4.isHidden = true
         }
     }
     
@@ -229,11 +258,13 @@ class KeyboardViewController: UIInputViewController {
         let buttonText4 = ["space", "123", "↵"]
         
         let buttonsNum1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-        let buttonsNum2 = ["-", "/", ":", ";", "(", ")", "£", "&", "@", "\""]
-        let buttonsNum3 = ["..", "#^", ".", "?", "!", "‘", "⌫", "↵"]
-        let buttons2Num1 = ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="]
-        let buttons2Num2 = ["_", "\\", "|", "~", "<", ">", "$", "€", "`", "'"]
-        let buttons2Num3 = ["..", "12", ".", "?", "!", "‘", "⌫", "↵"]
+        let buttonsNum2 = ["(", "-", "/", ":", ";", "£", "&", "\"", ")"]
+        let buttonsNum3 = ["#^", ".", "?", "!", "'", "@", "⌫"]
+        let buttons2Num1 = ["[", "{", "#", "%", "^", "*", "+", "=", "}", "]"]
+        let buttons2Num2 = ["<", "_", "\\", "|", "~", "$", "€", "`", "'", ">"]
+        let buttons2Num3 = ["123", ".", "?", "!", "‘", "@", "⌫"]
+        
+        let buttonsNum4 = ["space", "ABC", "↵"]
         
         let textDisplay = ["","",""]
         
@@ -253,6 +284,8 @@ class KeyboardViewController: UIInputViewController {
         n2row2 = createRowOfButtons(buttonTitles: buttons2Num2 as [NSString], target: #selector(self.didTapButton))
         n2row3 = createRowOfButtons(buttonTitles: buttons2Num3 as [NSString], target: #selector(self.didTapButton))
         
+        ntrow4 = createRowOfButtons(buttonTitles: buttonsNum4 as [NSString], target: #selector(self.didTapButton))
+        
         textrow = createRowOfButtons(buttonTitles: textDisplay as [NSString], target: #selector(self.didTapTextRowButton))
         
         self.view.addSubview(textrow)
@@ -269,6 +302,7 @@ class KeyboardViewController: UIInputViewController {
         self.view.addSubview(n2row1)
         self.view.addSubview(n2row2)
         self.view.addSubview(n2row3)
+        self.view.addSubview(ntrow4)
         
         textrow.translatesAutoresizingMaskIntoConstraints = false
         lrow1.translatesAutoresizingMaskIntoConstraints = false
@@ -284,13 +318,17 @@ class KeyboardViewController: UIInputViewController {
         n2row1.translatesAutoresizingMaskIntoConstraints = false
         n2row2.translatesAutoresizingMaskIntoConstraints = false
         n2row3.translatesAutoresizingMaskIntoConstraints = false
+        ntrow4.translatesAutoresizingMaskIntoConstraints = false
         
         
-        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, nrow1, nrow2, nrow3])
-        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, n2row1, n2row2, n2row3])
+        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, nrow1, nrow2, nrow3, ntrow4])
+        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, n2row1, n2row2, n2row3, ntrow4])
         addConstraintsToInputView(inputView: self.view, rowViews: [textrow, lrow1, lrow2, lrow3, trow4])
         addConstraintsToInputView(inputView: self.view, rowViews: [textrow, urow1, urow2, urow3, trow4])
         
+        requestSupplementaryLexicon { lexicon in
+            self.userLexicon = lexicon
+        }
         configureNumpad()
         updateCapsIfNeeded()
         
@@ -432,9 +470,13 @@ class KeyboardViewController: UIInputViewController {
             let documentProxy = self.textDocumentProxy
             //var beforeContext = documentProxy.documentContextBeforeInput
             
+            if documentProxy.documentContextBeforeInput?.count == 0 || (documentProxy.documentContextBeforeInput == nil){
+                return true
+            }
+            
             switch autocapitalization {
             case .none:
-                return true
+                return false
             case .words:
                 if let beforeContext = documentProxy.documentContextBeforeInput {
                     let previousCharacter = beforeContext[beforeContext.index(before: beforeContext.endIndex)]
@@ -499,4 +541,29 @@ class KeyboardViewController: UIInputViewController {
         return (character == " ") || (character == "\n") || (character == "\r") || (character == "\t")
     }
 
+}
+
+// MARK: - Private methods
+private extension KeyboardViewController {
+    // This looks in the uxer lexicon for something that matches the current input and replaces it
+    // useful for custom autocorrects or text expansion eg. omw -> on my way!
+    // TODO - for corrections and not expansions we also need a way to show suggestions from the lexicon
+    func attemptToReplaceCurrentWord() {
+        guard let entries = userLexicon?.entries,
+            let currentWord = currentWord?.lowercased() else {
+                return
+        }
+        
+        let replacementEntries = entries.filter {
+            $0.userInput.lowercased() == currentWord
+        }
+        
+        if let replacement = replacementEntries.first {
+            for _ in 0..<currentWord.count {
+                textDocumentProxy.deleteBackward()
+            }
+            
+            textDocumentProxy.insertText(replacement.documentText)
+        }
+    }
 }
