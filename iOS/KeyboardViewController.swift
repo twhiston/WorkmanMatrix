@@ -419,7 +419,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        let desiredHeight:CGFloat!
+//        let desiredHeight:CGFloat!
 //        if UIDevice.current.userInterfaceIdiom == .phone{
 //            desiredHeight = 259
 //        }else{
@@ -429,9 +429,9 @@ class KeyboardViewController: UIInputViewController {
 //                desiredHeight = 300
 //            }
 //        }
-        desiredHeight = 270
-        let heightConstraint = NSLayoutConstraint(item: view as Any, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1.0, constant: desiredHeight)
-        view.addConstraint(heightConstraint)
+//        desiredHeight = 270
+//        let heightConstraint = NSLayoutConstraint(item: view as Any, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1.0, constant: desiredHeight)
+//        view.addConstraint(heightConstraint)
         
     }
     
@@ -451,14 +451,14 @@ class KeyboardViewController: UIInputViewController {
         updateTextDisplay()
     }
     
-//    func darkMode() -> Bool {
-//        let darkMode = { () -> Bool in
-//            let proxy = self.textDocumentProxy
-//            return proxy.keyboardAppearance == UIKeyboardAppearance.dark
-//        }()
-//
-//        return darkMode
-//    }
+    func darkMode() -> Bool {
+        let darkMode = { () -> Bool in
+            let proxy = self.textDocumentProxy
+            return proxy.keyboardAppearance == UIKeyboardAppearance.dark
+        }()
+
+        return darkMode
+    }
     
     func shouldAutoCapitalize() -> Bool {
 //        if !UserDefaults.standard.bool(forKey: kAutoCapitalization) {
@@ -559,6 +559,9 @@ private extension KeyboardViewController {
         }
         
         if let replacement = replacementEntries.first {
+            if replacement.documentText == currentWord.uppercased(){
+                return
+            }
             for _ in 0..<currentWord.count {
                 textDocumentProxy.deleteBackward()
             }
