@@ -60,7 +60,15 @@ class KeyboardViewController: UIInputViewController {
         for _ in 0..<current.count {
             proxy.deleteBackward()
         }
-        proxy.insertText(title + " ")
+        
+        proxy.insertText(title)
+        
+        //If the next letter is not a space add one
+        let followingText = proxy.documentContextAfterInput ?? ""
+        if followingText.prefix(1) != " " {
+            proxy.insertText(" ")
+        }
+        
         updateTextDisplay()
     }
     
@@ -199,6 +207,7 @@ class KeyboardViewController: UIInputViewController {
         configureNumpad()
     }
     
+    //Don't call this directly, call setKeyboardOnType
     private func configureNumpad(){
         if numMode == 1 {
             hideLetterKeys()
@@ -229,6 +238,7 @@ class KeyboardViewController: UIInputViewController {
         }
     }
     
+    //Don't call this directly, call setKeyboardOnType
     private func hideLetterKeys(){
         urow1.isHidden = true
         urow2.isHidden = true
@@ -240,6 +250,7 @@ class KeyboardViewController: UIInputViewController {
         trow4.isHidden = true
     }
     
+    //Don't call this directly, call setKeyboardOnType
     private func setLetterKeys(){
         if caps {
             urow1.isHidden = false
@@ -261,6 +272,7 @@ class KeyboardViewController: UIInputViewController {
         trow4.isHidden = false
     }
     
+    //Don't call this directly, call setKeyboardOnType
     private func setEmailKeys(){
         urow1.isHidden = true
         urow2.isHidden = true
@@ -504,7 +516,6 @@ class KeyboardViewController: UIInputViewController {
     }
     
     override func viewWillLayoutSubviews() {
-        //self.nextKeyboardButton.isHidden = !self.needsInputModeSwitchKey
         super.viewWillLayoutSubviews()
     }
     
@@ -531,9 +542,6 @@ class KeyboardViewController: UIInputViewController {
 //    }
     
     func shouldAutoCapitalize() -> Bool {
-//        if !UserDefaults.standard.bool(forKey: kAutoCapitalization) {
-//            return false
-//        }
         
         let traits = self.textDocumentProxy
         if let autocapitalization = traits.autocapitalizationType {
