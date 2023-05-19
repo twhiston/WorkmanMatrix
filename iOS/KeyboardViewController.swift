@@ -306,8 +306,10 @@ class KeyboardViewController: UIInputViewController {
         button.sizeToFit()
         button.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = UIColor(white: 1.0, alpha: 1.0)
-        button.setTitleColor(UIColor.darkGray, for: [])
+//        button.backgroundColor = UIColor(white: 1.0, alpha: 1.0)
+//        button.setTitleColor(UIColor.darkGray, for: [])
+        button.backgroundColor = UIColor.darkGray
+        button.setTitleColor(UIColor(white: 1.0, alpha: 1.0), for: [])
         
         return button
     }
