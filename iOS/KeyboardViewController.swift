@@ -284,13 +284,13 @@ class KeyboardViewController: UIInputViewController {
         trow4.isHidden = false
     }
     
-    func createButtonWithTitle(title: String) -> UIButton {
+    func createButtonWithTitle(title: String, fontSize: CGFloat) -> UIButton {
         
         let button = UIButton(type: .system) as UIButton
         button.frame = CGRect(origin: .zero, size: CGSize(width: 30, height: 30))
         button.setTitle(title, for: [])
         button.sizeToFit()
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 32)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = UIColor(white: 1.0, alpha: 1.0)
         button.setTitleColor(UIColor.darkGray, for: [])
@@ -298,13 +298,13 @@ class KeyboardViewController: UIInputViewController {
         return button
     }
     
-    func createRowOfButtons(buttonTitles: [NSString], target: Selector ) -> UIView {
+    func createRowOfButtons(buttonTitles: [NSString], target: Selector, fontSize: CGFloat ) -> UIView {
     
         var buttons = [UIButton]()
         let keyboardRowView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 414, height: 50)))
     
         for buttonTitle in buttonTitles{
-            let button = createButtonWithTitle(title: buttonTitle as String)
+            let button = createButtonWithTitle(title: buttonTitle as String, fontSize: fontSize)
             button.addTarget(self, action: target, for: .touchUpInside)
             buttons.append(button)
             keyboardRowView.addSubview(button)
@@ -344,26 +344,26 @@ class KeyboardViewController: UIInputViewController {
         
         let textDisplay = ["","",""]
         
-        lrow1 = createRowOfButtons(buttonTitles: buttonLower1 as [NSString], target: #selector(self.didTapButton))
-        lrow2 = createRowOfButtons(buttonTitles: buttonLower2 as [NSString], target: #selector(self.didTapButton))
-        lrow3 = createRowOfButtons(buttonTitles: buttonLower3 as [NSString], target: #selector(self.didTapButton))
-        lrow3email = createRowOfButtons(buttonTitles: buttonLower3email as [NSString], target: #selector(self.didTapButton))
-        urow1 = createRowOfButtons(buttonTitles: buttonCaps1 as [NSString], target: #selector(self.didTapButton))
-        urow2 = createRowOfButtons(buttonTitles: buttonCaps2 as [NSString], target: #selector(self.didTapButton))
-        urow3 = createRowOfButtons(buttonTitles: buttonCaps3 as [NSString], target: #selector(self.didTapButton))
-        trow4 = createRowOfButtons(buttonTitles: buttonText4 as [NSString], target: #selector(self.didTapButton))
+        lrow1 = createRowOfButtons(buttonTitles: buttonLower1 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        lrow2 = createRowOfButtons(buttonTitles: buttonLower2 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        lrow3 = createRowOfButtons(buttonTitles: buttonLower3 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        lrow3email = createRowOfButtons(buttonTitles: buttonLower3email as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        urow1 = createRowOfButtons(buttonTitles: buttonCaps1 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        urow2 = createRowOfButtons(buttonTitles: buttonCaps2 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        urow3 = createRowOfButtons(buttonTitles: buttonCaps3 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        trow4 = createRowOfButtons(buttonTitles: buttonText4 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
     
-        nrow1 = createRowOfButtons(buttonTitles: buttonsNum1 as [NSString], target: #selector(self.didTapButton))
-        nrow2 = createRowOfButtons(buttonTitles: buttonsNum2 as [NSString], target: #selector(self.didTapButton))
-        nrow3 = createRowOfButtons(buttonTitles: buttonsNum3 as [NSString], target: #selector(self.didTapButton))
+        nrow1 = createRowOfButtons(buttonTitles: buttonsNum1 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        nrow2 = createRowOfButtons(buttonTitles: buttonsNum2 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        nrow3 = createRowOfButtons(buttonTitles: buttonsNum3 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
         
-        n2row1 = createRowOfButtons(buttonTitles: buttons2Num1 as [NSString], target: #selector(self.didTapButton))
-        n2row2 = createRowOfButtons(buttonTitles: buttons2Num2 as [NSString], target: #selector(self.didTapButton))
-        n2row3 = createRowOfButtons(buttonTitles: buttons2Num3 as [NSString], target: #selector(self.didTapButton))
+        n2row1 = createRowOfButtons(buttonTitles: buttons2Num1 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        n2row2 = createRowOfButtons(buttonTitles: buttons2Num2 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
+        n2row3 = createRowOfButtons(buttonTitles: buttons2Num3 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
         
-        ntrow4 = createRowOfButtons(buttonTitles: buttonsNum4 as [NSString], target: #selector(self.didTapButton))
+        ntrow4 = createRowOfButtons(buttonTitles: buttonsNum4 as [NSString], target: #selector(self.didTapButton), fontSize: 32)
         
-        textrow = createRowOfButtons(buttonTitles: textDisplay as [NSString], target: #selector(self.didTapTextRowButton))
+        textrow = createRowOfButtons(buttonTitles: textDisplay as [NSString], target: #selector(self.didTapTextRowButton), fontSize: 24)
         
         self.view.addSubview(textrow)
         self.view.addSubview(lrow1)
