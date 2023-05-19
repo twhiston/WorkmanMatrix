@@ -306,8 +306,6 @@ class KeyboardViewController: UIInputViewController {
         button.sizeToFit()
         button.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
         button.translatesAutoresizingMaskIntoConstraints = false
-//        button.backgroundColor = UIColor(white: 1.0, alpha: 1.0)
-//        button.setTitleColor(UIColor.darkGray, for: [])
         button.backgroundColor = UIColor.darkGray
         button.setTitleColor(UIColor(white: 1.0, alpha: 1.0), for: [])
         
@@ -514,10 +512,11 @@ class KeyboardViewController: UIInputViewController {
         }
     }
     
+    
     override func viewWillAppear(_ animated: Bool) {
 //        let desiredHeight:CGFloat!
 //        if UIDevice.current.userInterfaceIdiom == .phone{
-//            desiredHeight = 259
+//                desiredHeight = 259
 //        }else{
 //            if UIDevice.current.orientation == .portrait{
 //                desiredHeight = 260
@@ -525,10 +524,9 @@ class KeyboardViewController: UIInputViewController {
 //                desiredHeight = 300
 //            }
 //        }
-//        desiredHeight = 270
-//        let heightConstraint = NSLayoutConstraint(item: view as Any, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1.0, constant: desiredHeight)
+//        let heightConstraint = NSLayoutConstraint(item: view!, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1.0, constant: desiredHeight)
 //        view.addConstraint(heightConstraint)
-        
+
     }
     
     override func viewWillLayoutSubviews() {
@@ -653,7 +651,7 @@ private extension KeyboardViewController {
         }
         
         if let replacement = replacementEntries.first {
-            if replacement.documentText == currentWord.uppercased(){
+            if replacement.documentText == currentWord.uppercased() || replacement.documentText.lowercased() == currentWord {
                 return
             }
             for _ in 0..<currentWord.count {
