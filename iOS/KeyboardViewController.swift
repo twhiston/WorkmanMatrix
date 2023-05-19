@@ -66,9 +66,32 @@ class KeyboardViewController: UIInputViewController {
     @objc func didTapButton(sender: AnyObject?) {
         
         let button = sender as! UIButton
-        guard let title = button.title(for: []) else { return }
+        guard var title = button.title(for: []) else { return }
         let proxy = textDocumentProxy as UITextDocumentProxy
         
+        //If we have selected text and our input is a bracket button we want to wrap the input in the brackets
+        let selectedText = proxy.selectedText
+        if (selectedText?.isEmpty != nil) {
+            let charset = CharacterSet(charactersIn: "[]{}()<>")
+            if title.rangeOfCharacter(from: charset) != nil {
+                //If title matches one of the above and there is some selected text then we want to wrap it
+                switch title {
+                case "(", ")" :
+                    title = "("+selectedText!+")"
+                case "[", "]":
+                    title = "["+selectedText!+"]"
+                case "{", "}":
+                    title = "{"+selectedText!+"}"
+                case "<", ">":
+                    title = "<"+selectedText!+">"
+                default:
+                    break
+                }
+                
+            }
+        }
+        
+        //Now do things based on the input, which may have been updated above due to wrapping
         switch title {
         case "⌫" :
             proxy.deleteBackward()
@@ -91,7 +114,6 @@ class KeyboardViewController: UIInputViewController {
         case "ABC" :
             numMode = 0
             configureNumpad()
-        //case "⇧" :
         default :
             proxy.insertText(title)
         }
@@ -103,8 +125,10 @@ class KeyboardViewController: UIInputViewController {
     }
     
     func updateTextDisplay(){
-        //get suggestions
         
+        let inputWord = currentWord ?? ""
+        
+        //get suggestions
         var replacements = [String](repeating: "", count: 3)
         
         if let beforeContext = textDocumentProxy.documentContextBeforeInput {
@@ -115,25 +139,37 @@ class KeyboardViewController: UIInputViewController {
         }
         
         let checker = UITextChecker()
-        let inputWord = currentWord ?? ""
         let guesses = checker.guesses(forWordRange: NSRange(0..<inputWord.utf16.count), in: inputWord , language: "en")
         let completions = checker.completions(forPartialWordRange: NSRange(0..<inputWord.utf16.count), in: inputWord, language: "en")
         
-        // This looks fucking grim!
-        if  0 < guesses?.count ?? 0 {
-            replacements[1] = guesses![0]
+        let entries = userLexicon?.entries
+        
+        //Replacement entries are user lex entries we could offer to expand.
+        let replacementEntries = entries?.filter {
+            $0.userInput.lowercased() == currentWord?.lowercased()
+        }
+        
+        if replacementEntries?.count ?? 0 > 0 {
+            let first = replacementEntries?.first
+            replacements[1] = first?.documentText ?? ""
         } else {
-            replacements[1] = currentWord ?? ""
+            if  0 < guesses?.count ?? 0 {
+                replacements[1] = guesses![0]
+            } else {
+                replacements[1] = inputWord
+            }
         }
         
         if  0 < completions?.count ?? 0 {
             replacements[0] = completions![0]
+        } else if 1 < guesses?.count ?? 0 {
+            replacements[0] = guesses![1]
         }
         
         if  1 < completions?.count ?? 0 {
             replacements[2] = completions![1]
         } else {
-            replacements[2] = currentWord ?? ""
+            replacements[2] = inputWord
         }
         replaceTextRowTitles(replacements)
     }
@@ -446,19 +482,20 @@ class KeyboardViewController: UIInputViewController {
         updateTextDisplay()
     }
     
-    override func textDidChange(_ tebxtInput: UITextInput?) {
+    override func textDidChange(_ textInput: UITextInput?) {
         // The app has just changed the document's contents, the document context has been updated.
         updateTextDisplay()
     }
     
-    func darkMode() -> Bool {
-        let darkMode = { () -> Bool in
-            let proxy = self.textDocumentProxy
-            return proxy.keyboardAppearance == UIKeyboardAppearance.dark
-        }()
-
-        return darkMode
-    }
+    
+//    func darkMode() -> Bool {
+//        let darkMode = { () -> Bool in
+//            let proxy = self.textDocumentProxy
+//            return proxy.keyboardAppearance == UIKeyboardAppearance.dark
+//        }()
+//
+//        return darkMode
+//    }
     
     func shouldAutoCapitalize() -> Bool {
 //        if !UserDefaults.standard.bool(forKey: kAutoCapitalization) {
