@@ -116,11 +116,16 @@ class KeyboardViewController: UIInputViewController {
         case "space" :
             //lexicon replacement
             attemptToReplaceCurrentWord()
-            // if previous or next char is a space then add a full stop
+            
+            // handle addition of . on double space inserts
+            let keyboardType = textDocumentProxy.keyboardType
             if previousText.suffix(1) == " " {
                 proxy.deleteBackward()
                 proxy.insertText(".")
-                if(followingText.prefix(1) != " " && followingText.prefix(1) != "") {
+                if(followingText.prefix(1) != " " &&
+                   followingText.prefix(1) != "" &&
+                   keyboardType != .emailAddress &&
+                   keyboardType != .webSearch) {
                     proxy.insertText(" ")
                 }
             } else if followingText.prefix(1) == " " {
@@ -316,7 +321,7 @@ class KeyboardViewController: UIInputViewController {
     
         var buttons = [UIButton]()
         let keyboardRowView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 414, height: 50)))
-    
+        keyboardRowView.backgroundColor = UIColor.lightGray
         for buttonTitle in buttonTitles{
             let button = createButtonWithTitle(title: buttonTitle as String, fontSize: fontSize)
             button.addTarget(self, action: target, for: .touchUpInside)
@@ -343,6 +348,7 @@ class KeyboardViewController: UIInputViewController {
         let buttonLower1 = ["q", "d", "r", "w", "b", "j", "f", "u", "p", "⇧"]
         let buttonLower2 = ["a", "s", "h", "t", "g", "y", "n", "e", "o", "i"]
         let buttonLower3 = ["z", "x", "m", "c", "v", "k", "l", ",", ".", "⌫"]
+        // special row for email fields
         let buttonLower3email = ["z", "x", "m", "c", "v", "k", "l", "@", ".", "⌫"]
         
         let buttonText4 = ["space", "123", "↵"]
