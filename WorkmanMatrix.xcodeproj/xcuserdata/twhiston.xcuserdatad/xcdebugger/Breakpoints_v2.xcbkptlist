@@ -24,7 +24,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "888D723C-FC2B-44E2-9A9D-A771E84C5B50"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "iOS/KeyboardViewController.swift"
@@ -34,6 +34,38 @@
             endingLineNumber = "661"
             landmarkName = "attemptToReplaceCurrentWord()"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "888D723C-FC2B-44E2-9A9D-A771E84C5B50 - 2b7336d70132887a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "iOS.KeyboardViewController.attemptToReplaceCurrentWord() -&gt; ()"
+                  moduleName = "iOS"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/twhiston/Code/_external/github/WorkmanMatrix/iOS/KeyboardViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "660"
+                  endingLineNumber = "660"
+                  offsetFromSymbolStart = "1572">
+               </Location>
+               <Location
+                  uuid = "888D723C-FC2B-44E2-9A9D-A771E84C5B50 - 2b7336d70132885d"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "iOS.KeyboardViewController.attemptToReplaceCurrentWord() -&gt; ()"
+                  moduleName = "iOS"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/twhiston/Code/_external/github/WorkmanMatrix/iOS/KeyboardViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "661"
+                  endingLineNumber = "661"
+                  offsetFromSymbolStart = "1588">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

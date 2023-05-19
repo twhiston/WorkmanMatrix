@@ -312,7 +312,7 @@ class KeyboardViewController: UIInputViewController {
         button.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = UIColor.darkGray
-        button.setTitleColor(UIColor(white: 1.0, alpha: 1.0), for: [])
+        button.setTitleColor(UIColor.lightText, for: [])
         
         return button
     }
@@ -321,7 +321,7 @@ class KeyboardViewController: UIInputViewController {
     
         var buttons = [UIButton]()
         let keyboardRowView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 414, height: 50)))
-        keyboardRowView.backgroundColor = UIColor.lightGray
+        keyboardRowView.backgroundColor = UIColor.systemGray3
         for buttonTitle in buttonTitles{
             let button = createButtonWithTitle(title: buttonTitle as String, fontSize: fontSize)
             button.addTarget(self, action: target, for: .touchUpInside)
