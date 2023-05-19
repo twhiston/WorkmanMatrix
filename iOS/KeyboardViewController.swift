@@ -16,6 +16,7 @@ class KeyboardViewController: UIInputViewController {
     var lrow1:UIView!
     var lrow2:UIView!
     var lrow3:UIView!
+    var lrow3email:UIView!
     var urow1:UIView!
     var urow2:UIView!
     var urow3:UIView!
@@ -97,7 +98,7 @@ class KeyboardViewController: UIInputViewController {
             proxy.deleteBackward()
         case "⇧" :
             caps = !caps
-            setLetterKeys()
+            setKeyboardOnType()
             return
         case "↵" :
             proxy.insertText("\n")
@@ -107,13 +108,10 @@ class KeyboardViewController: UIInputViewController {
             proxy.insertText(" ")
         case "12", "123" :
             numMode = 1
-            configureNumpad()
         case "#^" :
             numMode = 2
-            configureNumpad()
         case "ABC" :
             numMode = 0
-            configureNumpad()
         default :
             proxy.insertText(title)
         }
@@ -121,6 +119,8 @@ class KeyboardViewController: UIInputViewController {
         if numMode == 0 {
             updateCapsIfNeeded()
         }
+        //Configures the display rows that are visible
+        setKeyboardOnType()
         //Nothing should go after this switch
     }
     
@@ -183,10 +183,23 @@ class KeyboardViewController: UIInputViewController {
     
     func updateCapsIfNeeded() {
         caps = self.shouldAutoCapitalize()
-        setLetterKeys()
     }
     
-    func configureNumpad(){
+    private func setKeyboardOnType(){
+        
+        let keyboardType = textDocumentProxy.keyboardType
+
+        switch(keyboardType) {
+        case .emailAddress:
+            setEmailKeys()
+        default:
+            setLetterKeys()
+        }
+        
+        configureNumpad()
+    }
+    
+    private func configureNumpad(){
         if numMode == 1 {
             hideLetterKeys()
             nrow1.isHidden = false
@@ -216,17 +229,18 @@ class KeyboardViewController: UIInputViewController {
         }
     }
     
-    func hideLetterKeys(){
+    private func hideLetterKeys(){
         urow1.isHidden = true
         urow2.isHidden = true
         urow3.isHidden = true
         lrow1.isHidden = true
         lrow2.isHidden = true
         lrow3.isHidden = true
+        lrow3email.isHidden = true
         trow4.isHidden = true
     }
     
-    func setLetterKeys(){
+    private func setLetterKeys(){
         if caps {
             urow1.isHidden = false
             urow2.isHidden = false
@@ -234,6 +248,7 @@ class KeyboardViewController: UIInputViewController {
             lrow1.isHidden = true
             lrow2.isHidden = true
             lrow3.isHidden = true
+            lrow3email.isHidden = true
         } else {
             urow1.isHidden = true
             urow2.isHidden = true
@@ -241,7 +256,19 @@ class KeyboardViewController: UIInputViewController {
             lrow1.isHidden = false
             lrow2.isHidden = false
             lrow3.isHidden = false
+            lrow3email.isHidden = true
         }
+        trow4.isHidden = false
+    }
+    
+    private func setEmailKeys(){
+        urow1.isHidden = true
+        urow2.isHidden = true
+        urow3.isHidden = true
+        lrow1.isHidden = false
+        lrow2.isHidden = false
+        lrow3.isHidden = true
+        lrow3email.isHidden = false
         trow4.isHidden = false
     }
     
@@ -285,11 +312,12 @@ class KeyboardViewController: UIInputViewController {
         
         let buttonCaps1 = ["Q", "D", "R", "W", "B", "J", "F", "U", "P", "⇧"]
         let buttonCaps2 = ["A", "S", "H", "T", "G", "Y", "N", "E", "O", "I"]
-        let buttonCaps3 = ["Z", "X", "M", "C", "V", "K", "L", ".", "@", "⌫"]
+        let buttonCaps3 = ["Z", "X", "M", "C", "V", "K", "L", ",", ".", "⌫"]
         
         let buttonLower1 = ["q", "d", "r", "w", "b", "j", "f", "u", "p", "⇧"]
         let buttonLower2 = ["a", "s", "h", "t", "g", "y", "n", "e", "o", "i"]
         let buttonLower3 = ["z", "x", "m", "c", "v", "k", "l", ",", ".", "⌫"]
+        let buttonLower3email = ["z", "x", "m", "c", "v", "k", "l", "@", ".", "⌫"]
         
         let buttonText4 = ["space", "123", "↵"]
         
@@ -307,6 +335,7 @@ class KeyboardViewController: UIInputViewController {
         lrow1 = createRowOfButtons(buttonTitles: buttonLower1 as [NSString], target: #selector(self.didTapButton))
         lrow2 = createRowOfButtons(buttonTitles: buttonLower2 as [NSString], target: #selector(self.didTapButton))
         lrow3 = createRowOfButtons(buttonTitles: buttonLower3 as [NSString], target: #selector(self.didTapButton))
+        lrow3email = createRowOfButtons(buttonTitles: buttonLower3email as [NSString], target: #selector(self.didTapButton))
         urow1 = createRowOfButtons(buttonTitles: buttonCaps1 as [NSString], target: #selector(self.didTapButton))
         urow2 = createRowOfButtons(buttonTitles: buttonCaps2 as [NSString], target: #selector(self.didTapButton))
         urow3 = createRowOfButtons(buttonTitles: buttonCaps3 as [NSString], target: #selector(self.didTapButton))
@@ -328,6 +357,7 @@ class KeyboardViewController: UIInputViewController {
         self.view.addSubview(lrow1)
         self.view.addSubview(lrow2)
         self.view.addSubview(lrow3)
+        self.view.addSubview(lrow3email)
         self.view.addSubview(urow1)
         self.view.addSubview(urow2)
         self.view.addSubview(urow3)
@@ -344,6 +374,7 @@ class KeyboardViewController: UIInputViewController {
         lrow1.translatesAutoresizingMaskIntoConstraints = false
         lrow2.translatesAutoresizingMaskIntoConstraints = false
         lrow3.translatesAutoresizingMaskIntoConstraints = false
+        lrow3email.translatesAutoresizingMaskIntoConstraints = false
         trow4.translatesAutoresizingMaskIntoConstraints = false
         urow1.translatesAutoresizingMaskIntoConstraints = false
         urow2.translatesAutoresizingMaskIntoConstraints = false
@@ -360,12 +391,13 @@ class KeyboardViewController: UIInputViewController {
         addConstraintsToInputView(inputView: self.view, rowViews: [textrow, nrow1, nrow2, nrow3, ntrow4])
         addConstraintsToInputView(inputView: self.view, rowViews: [textrow, n2row1, n2row2, n2row3, ntrow4])
         addConstraintsToInputView(inputView: self.view, rowViews: [textrow, lrow1, lrow2, lrow3, trow4])
+        addConstraintsToInputView(inputView: self.view, rowViews: [textrow, lrow1, lrow2, lrow3email, trow4])
         addConstraintsToInputView(inputView: self.view, rowViews: [textrow, urow1, urow2, urow3, trow4])
         
         requestSupplementaryLexicon { lexicon in
             self.userLexicon = lexicon
         }
-        configureNumpad()
+        setKeyboardOnType()
         updateCapsIfNeeded()
         
     }
@@ -479,6 +511,7 @@ class KeyboardViewController: UIInputViewController {
     override func textWillChange(_ textInput: UITextInput?) {
         // The app is about to change the document's contents. Perform any preparation here.
         // Also hit when a cursor moves
+        setKeyboardOnType()
         updateTextDisplay()
     }
     
