@@ -63,9 +63,10 @@ class KeyboardViewController: UIInputViewController {
         
         proxy.insertText(title)
         
-        //If the next letter is not a space add one
+        //If the next letter is not a defined character add a space
         let followingText = proxy.documentContextAfterInput ?? ""
-        if followingText.prefix(1) != " " {
+        let charset = CharacterSet(charactersIn: " .,")
+        if followingText.prefix(1).rangeOfCharacter(from: charset) == nil {
             proxy.insertText(" ")
         }
         
@@ -77,6 +78,8 @@ class KeyboardViewController: UIInputViewController {
         let button = sender as! UIButton
         guard var title = button.title(for: []) else { return }
         let proxy = textDocumentProxy as UITextDocumentProxy
+        let followingText = proxy.documentContextAfterInput ?? ""
+        let previousText = proxy.documentContextBeforeInput ?? ""
         
         //If we have selected text and our input is a bracket button we want to wrap the input in the brackets
         let selectedText = proxy.selectedText
@@ -113,7 +116,18 @@ class KeyboardViewController: UIInputViewController {
         case "space" :
             //lexicon replacement
             attemptToReplaceCurrentWord()
-            proxy.insertText(" ")
+            // if previous or next char is a space then add a full stop
+            if previousText.suffix(1) == " " {
+                proxy.deleteBackward()
+                proxy.insertText(".")
+                if(followingText.prefix(1) != " " && followingText.prefix(1) != "") {
+                    proxy.insertText(" ")
+                }
+            } else if followingText.prefix(1) == " " {
+                proxy.insertText(".")
+            } else {
+                proxy.insertText(" ")
+            }
         case "12", "123" :
             numMode = 1
         case "#^" :
